@@ -30,7 +30,7 @@
 		  function go() {
 
 		  	// The very first thing to do is to set which groups will be involved in the game. Groups can be used for grouped collision detection and for rendering order
-		 	gbox.setGroups(["background","player","ghosts","bonus","sparks","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
+		 	gbox.setGroups(["background","player","bug","will","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
 		 	gbox.setAudioChannels({bgmusic:{volume:0.8},sfx:{volume:1.0}}); // If we're going to add audio to our game, we have to create virtual channels. Channels acts like groups but for audio: audio on the same channels can be stopped together and shares the same highest volume.
 
 
@@ -80,11 +80,13 @@
 		  // This event is triggered every time the player "reborn". As you've seen, is manually called in the last line of "changelevel"
 		  maingame.newLife=function(up) {
 		  	// Let's clean up the level from the ghosts, sparks (visual effects like explosions - in player are sparks the earned points messages) and left bonuses, if any.
-		  	gbox.trashGroup("sparks");
-		  	gbox.trashGroup("bonus");
-		  	gbox.trashGroup("ghosts");
+		  	gbox.trashGroup("bug");
+		  	gbox.trashGroup("will");
 		  	gbox.purgeGarbage(); // the gbox module have a garbage collector that runs sometime. Let's call this manually, for optimization (and better reinitialization)
 			toys.topview.spawn(gbox.getObject("player","player"),{x:maze.hw,y:maze.hh,accx:0,accy:0,xpushing:false,ypushing:false}); // Our "player" object into the "player" group spawns in the middle of the maze every time it spawns.
+			maingame.addBug(10, 10, 0);
+			maingame.addBug(20, 20, 1);
+			maingame.addBug(40,40,2);
 			//maingame.addGhost({id:1,x:maze.hw-12,y:maze.hh-20}); // Ghost are added here
 			//maingame.addGhost({id:2,x:maze.hw-24,y:maze.hh-17});
 			//maingame.addGhost({id:3,x:maze.hw+4,y:maze.hh-20});
@@ -126,6 +128,11 @@
 			gbox.addObject(new Player());
 
 	 	 }
+
+		maingame.addBug = function(x, y, index){
+			var bug = gbox.addObject(new Bug(x, y, index));
+			return bug;
+		}
 
 	 	 // Now is the time to explain how to create a generator. Is nothing but a new method of maingame that generate an object at given position.
 	 	 maingame.addGhost=function(data) { // Let's start with something that spawn a ghost. Objects as arguments are not only flexible, but you can give a name to the parameters or skipping them when calling.

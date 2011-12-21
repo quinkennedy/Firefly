@@ -17,6 +17,8 @@
 
 	addTiles:[
 		{id:"player",image:"sprites",tileh:30,tilew:30,tilerow:12,gapx:0,gapy:0},
+		{id:"bug", image:"sprites", tileh:10, tilew:10, tilerow:1, gapx:109, gapy:163},
+		{id:"will", image:"sprites", tileh:30,tilew:30,tilerow:1, gapx:120, gapy:155},
 
 		{id:"lefthit",image:"sprites",tileh:40,tilew:20,tilerow:4,gapx:0,gapy:30},
 		{id:"uphit",image:"sprites",tileh:20,tilew:40,tilerow:4,gapx:0,gapy:70},
