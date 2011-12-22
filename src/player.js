@@ -42,7 +42,7 @@ attack:function() {
 				toys.topview.fireBullet("playerbullets",null,{
 					fullhit:true,
 					collidegroup:"bug",
-					undestructable:true, // Custom attribute. Is not destroyed by the hitted object.
+					undestructable:false, // Custom attribute. Is not destroyed by the hitted object.
 					power:1, // Custom attribute. Is the damage value of this weapon.
 					from:this,
 					sidex:this.facing,
