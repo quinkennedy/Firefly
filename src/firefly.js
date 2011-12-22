@@ -30,7 +30,7 @@
 		  function go() {
 
 		  	// The very first thing to do is to set which groups will be involved in the game. Groups can be used for grouped collision detection and for rendering order
-		 	gbox.setGroups(["background","player","bug","will","playerbullets","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
+		 	gbox.setGroups(["background","player","sparks","bug","will","playerbullets","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
 		 	gbox.setAudioChannels({bgmusic:{volume:0.8},sfx:{volume:1.0}}); // If we're going to add audio to our game, we have to create virtual channels. Channels acts like groups but for audio: audio on the same channels can be stopped together and shares the same highest volume.
 
 
@@ -82,6 +82,7 @@
 		  	// Let's clean up the level from the ghosts, sparks (visual effects like explosions - in player are sparks the earned points messages) and left bonuses, if any.
 		  	gbox.trashGroup("bug");
 		  	gbox.trashGroup("will");
+			gbox.trashGroup("sparks");
 		  	gbox.purgeGarbage(); // the gbox module have a garbage collector that runs sometime. Let's call this manually, for optimization (and better reinitialization)
 			toys.topview.spawn(gbox.getObject("player","player"),{x:maze.hw,y:maze.hh,accx:0,accy:0,xpushing:false,ypushing:false}); // Our "player" object into the "player" group spawns in the middle of the maze every time it spawns.
 			maingame.addBug(10, 10, 0);
@@ -89,10 +90,6 @@
 			maingame.addBug(40,40,2);
 			maingame.addWill(9*30,10,0);
 			maingame.addWill(9*30,6*30,1);
-			//maingame.addGhost({id:1,x:maze.hw-12,y:maze.hh-20}); // Ghost are added here
-			//maingame.addGhost({id:2,x:maze.hw-24,y:maze.hh-17});
-			//maingame.addGhost({id:3,x:maze.hw+4,y:maze.hh-20});
-			//maingame.addGhost({id:4,x:maze.hw+14,y:maze.hh-17});
 			gbox.playAudio("background"); // Start playing the ingame music. Notes that the "maingame" object will fade in/out and stop the "bgmusic" channel when the screen will fade automatically. We just need to play the music when the screen is fading to fade the music too!
 		  }
 
@@ -143,15 +140,13 @@
 
 	 	 // Some final touch to the maingame object...
 		  maingame.gameIsOver=function() { // This method is called by maingame itself to check if the game is over or not. So...
-		  	var isGameover=maingame.hud.getValue("lives","value")==0; // the game is REALLY over when lives counter reaches the zero.
+		  	/*var isGameover=maingame.hud.getValue("lives","value")==0; // the game is REALLY over when lives counter reaches the zero.
 		  	if (isGameover) // Just in time, we can do something useful, since we're here. Like... checking if we have a new *CAPMAN CHAMPION*...
 		  		if (maingame.hud.getNumberValue("score","value")>maingame.hud.getNumberValue("hiscore","value")) // If the player's score is higher the shown hiscore...
 		  			gbox.dataSave("player-hiscore",maingame.hud.getNumberValue("score","value")); // ... save the player's score as new hiscore. The next time we play "player", the new hiscore to beat will be this one.
 		  	return isGameover; // Finally, returning if the game is ended or not.
-		  }
-		  // You can do this hiscore business in the ending animation, but for a tutorial, the "gameIsOver" is good enough. Is also unfair that there isn't an hiscore for each difficulty level. The world is bad... luckly you can this sources whenever you want, as exercise.
+		  */return false;}
 
-		 // And now let's do something not related with ghosts, players, pills and mazes. Usually random things and hidden countings happens during the gameplay, so...
 		 maingame.gameEvents=function() { // This method happens every frame of the gameplay. You can keep here game timers or make happen random things, like...
 		 //	if (maingame.pillscount==0) // ...check if the maze is clear...
 		//		maingame.gotoLevel(maingame.level+1); // ...and warp to the next level, if true.

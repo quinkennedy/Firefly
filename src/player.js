@@ -93,13 +93,12 @@ attack:function() {
 				},
 
 				// And now, a custom method. This one will kill the player and will be called by ghosts, when colliding with player.
-				kill:function() {
+				sleep:function() {
 					if (!this.killed) { // If we're alive...
 						this.killed=true; // First of all, player is killed. As you've seen, that makes player invisible and on hold.
 						gbox.hitAudio("die"); // Play the die sound
-						maingame.hud.addValue("lives","value",-1); // Then decrease the lives count.
 						maingame.playerDied({wait:50}); // Telling the main game cycle that the player died. The arguments sets a short delay after the last fadeout, for making visible the dead animation
-						toys.generate.sparks.simple(this,"sparks",null,{tileset:this.tileset,frames:{speed:4,frames:[6,5,7,8,9,9,9,9]}});
+						toys.generate.sparks.simple(this,"sparks",null,{tileset:this.tileset,frames:{speed:.1,frames:[8]}});
 						// And here comes a common trick: the player is still where was killed and a "spark" (i.e. unuseful animation) starts in the same place.
 						// This method allows many nice tricks, since avoid destruction/recreation of the player object, allow a respawn the player in the place it was killed very easily (switching
 						// the killed attribute. The "spark.simple" method spawns a spark in the same position of the object in the first argument.

@@ -98,6 +98,10 @@ var Will = function(x,y,index){
 			      //toys.topview.handleAccellerations(this);
 			      toys.topview.applyForces(this);
 			      toys.topview.tileCollision(this,maze,"map",null);
+			      if (gbox.collides(this,pl,2)) { // If we're colliding with capman, with a tolerance of 2 pixels...
+					maingame.bullettimer=10; // ...stop the game for a while.
+					pl.sleep();
+				}	
 		},
 		/*kill:function(by){
 			gbox.trashObject(this);
