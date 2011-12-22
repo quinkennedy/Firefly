@@ -5,7 +5,8 @@ var Player = function(){
 				tileset:"player", // Uses this tileset, generated during loading phase...
 				killed:false, // and, for now, was not killed.
 				scorecombo:1, // We'll keep also the score combo, while eating ghosts. at start is 0. Will increase while we're invincible.
-
+				bugs:0,
+				stilltimer:0,
 				initialize:function() { // The "initialize" method is called the first frame the object spawns and never more.
 					// We will use the topview toys, since player is... well... a top view game.
 					toys.topview.initialize(this,{
@@ -28,9 +29,11 @@ var Player = function(){
 						// What? Starting "x" and "y" are not here. That's because, when the first level starts, the "newLife" calls "spawn" over the player, setting the position.
 					});
 				},
-
+				gotBug:function(){
+					this.bugs++;
+				},
 attack:function() {
-		gbox.hitAudio("sword");
+		gbox.hitAudio("swing");
 
 		this.stilltimer=10; // Stay still for a while
 		this.frame=(this.facing==toys.FACE_UP?9:(this.facing==toys.FACE_DOWN?10:11));
@@ -38,7 +41,7 @@ attack:function() {
 		 // net
 				toys.topview.fireBullet("playerbullets",null,{
 					fullhit:true,
-					collidegroup:"foes",
+					collidegroup:"bug",
 					undestructable:true, // Custom attribute. Is not destroyed by the hitted object.
 					power:1, // Custom attribute. Is the damage value of this weapon.
 					from:this,
@@ -55,12 +58,14 @@ attack:function() {
 	},
 
 				first:function() { // Usually everyting involving interacton is into the "first" method.
+					if (this.stilltimer) this.stilltimer--;
+
 					this.counter=(this.counter+1)%60; // This line must be used in every object that uses animation. Is needed for getting the right frame (the "frames" block few lines up)
 
 					if (!this.killed&&!maingame.gameIsHold()) { // If player is still alive and the game is not "hold" (level changing fadein/fadeouts etc.) and the "bullet timer" is not stopping the game.
 
 						// First of all, let's move.
-						toys.topview.controlKeys(this,{left:"left",right:"right",up:"up",down:"down"}); // Set player's horizontal and vertical speed.
+						toys.topview.controlKeys(this,(this.stilltimer ? {} : {left:"left",right:"right",up:"up",down:"down"})); // Set player's horizontal and vertical speed.
 						toys.topview.handleAccellerations(this);
 						toys.topview.applyForces(this); // Moves player
 						// Note that our player will keep going since we're not changing the speed given by controlKeys and applied by applyForces (i.e. toys.handleAccellerations)
@@ -68,14 +73,12 @@ attack:function() {
 																								  // tolerance indicates how "rounded" the corners are (for turning precision - in player have to be precise but not too much, for anticipated turnings)
 																								  // Approximation is the distance in pixel of each check. Lower approximation is better but is slower. Usually using the lower between the tile size and the sprite height is enough.
 
-						toys.topview.setFrame(this); // setFrame sets the right frame checking the facing and the defined animations in "initialize"
-
-						// Then... let's eat!
-						//var inmouth=help.getTileInMap(this.x+this.hw,this.y+this.hh,maze,0); // I'll explain this the next line.
-						// getTileInMap returns the tile in the specified coord in pixel. So the x position plus half of his width (and the same for y and half height), gives the center of player (i.e. the mouth)
-						// The third argument is the tile map we're checking, that is our maze. 0 is the returned value if the pointed coord is our from the map. All this for picking which tile is in the
-						// player's mouth!
-					
+						if (!this.stilltimer){
+							toys.topview.setFrame(this); // setFrame sets the right frame checking the facing and the defined animations in "initialize"
+							if(gbox.keyIsHit("a")){
+								this.attack();
+							}
+						}
 					}
 				},
 

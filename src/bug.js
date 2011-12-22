@@ -22,6 +22,15 @@ var Bug = function(x,y,index){
 			      toys.topview.floorCollision(this);
 			      toys.topview.adjustZindex(this);
 		},
+		kill:function(by){
+			gbox.trashObject(this);
+		},
+		hitByBullet:function(by) {
+			this.kill(); // Kill...
+			var pl=gbox.getObject("player","player");
+			pl.gotBug();
+			return by.undestructable; // Destroy or not a bullet (decided by the bullet itself)
+		},
 		blit:function(){
 			     //gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset, tile:1, dx:this.x, dy:this.y, camera:this.camera, alpha:1});
 			     gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset, tile:0, dx:this.x, dy:this.y, camera:this.camera, alpha:Math.pow((Math.cos(Math.PI*(this.blinkcounter/this.blinkfrequency)*2)+1)/2,6)});
