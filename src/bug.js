@@ -7,6 +7,8 @@ var Bug = function(x,y,index){
 		blinkcounter:Math.random()*100,
 		x:x,
 		y:y,
+		nodiagonals:false,
+		noreset:true,
 		initialize:function(){
 			toys.topview.initialize(this,{
 				frames:{standup:{frames:[0]}}});
