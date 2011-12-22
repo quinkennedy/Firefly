@@ -63,7 +63,7 @@
 				"mmm....m.0"
 				],[[0,"."],[10,"0"],[11,"m"]]), // ...this array as palette. Don't you think that a map like this is quite easy to edit and read with your on-the-go text editor?
 					tileIsSolid:function(obj,t){ // This function have to return true if the object "obj" is checking if the tile "t" is a wall, so...
-							return (t!==0);
+							return t==null || (obj.group != 'bug' && obj.group != 'will' && t!==0);
 					}
 
 				 });
@@ -87,6 +87,8 @@
 			maingame.addBug(10, 10, 0);
 			maingame.addBug(20, 20, 1);
 			maingame.addBug(40,40,2);
+			maingame.addWill(9*30,10,0);
+			maingame.addWill(9*30,6*30,1);
 			//maingame.addGhost({id:1,x:maze.hw-12,y:maze.hh-20}); // Ghost are added here
 			//maingame.addGhost({id:2,x:maze.hw-24,y:maze.hh-17});
 			//maingame.addGhost({id:3,x:maze.hw+4,y:maze.hh-20});
@@ -132,6 +134,11 @@
 		maingame.addBug = function(x, y, index){
 			var bug = gbox.addObject(new Bug(x, y, index));
 			return bug;
+		}
+
+		maingame.addWill = function(x,y,index){
+			var will = gbox.addObject(new Will(x, y, index));
+			return will;
 		}
 
 	 	 // Some final touch to the maingame object...
