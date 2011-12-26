@@ -78,16 +78,18 @@
 			var yCurr = yMin;
 			maingame.hud.setValue("xMinAc","value",leadingZeros(xCurr,2));
 			maingame.hud.setValue("yMinAc","value",leadingZeros(yCurr,2));
-			var plX = pl.x/30;
-			var plY = pl.y/30;
-			for(var i = 0; i < maze.map[0].length; i++){//x = xMin; x != (xMax + 1) % totalCells; x = (x + 1) % totalCells){
+			var plXfloor = (pl.x/30)>>>0;
+			var plYfloor = (pl.y/30)>>>0;
+			var plXceil = Math.ceil(pl.x/30);
+			var plYceil = Math.ceil(pl.x/30);
+			for(var i = 0; i < maze.map[0].length; i++){
 				yCurr = yMin;
-				for(var j = 0; j < maze.map.length; j++){//var y = yMin; y != (yMax + 1) % totalCells; y = (y + 1) % totalCells){
-					//if (i < plX - 1 || i > plX + 1 || j < plY - 1 || j > plY + 1){
+				for(var j = 0; j < maze.map.length; j++){
+					if (i < plXfloor - 1 || i > plXceil + 1 || j < plYfloor - 1 || j > plYceil + 1){
 						var rand = Alea(seed, xCurr, yCurr);
 						rand();//trash the first one since that was used to create the grid cell
 						addEntities(rand,i,j);
-					//}
+					}
 					yCurr = (yCurr + 1) % totalCells;
 				}
 				xCurr = (xCurr + 1) % totalCells;
