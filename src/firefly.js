@@ -9,7 +9,18 @@
 		  // These objects will be reachable everywhere. Usually are the levels, the dialogues and the maingame object.
 		  var maingame; // The magic object that handles the full play cycle
 		  var maze; // The maze array, with pills and walls
-
+		var arrPieces = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,11,11];
+		//I think this is the smallest map I can do with this setup, we will use this for testing for now
+				var totalCells = 13//11*2+1;//Math.pow(2, 52);
+				var xMin = 0;
+				var xMax = 12;//11*2-1;
+				var yMin = 0;
+				var yMax = 10;//9*2-1;
+				var seed = new Date();
+				var bugP = .01;
+				var willP = .01;
+				var willIndex = 0;
+				var bugIndex = 0;
 
 		// First of all, let's load all the needed resources. Is done on the "onLoad" event of the window.
 		gbox.onLoad(function () {
@@ -46,32 +57,8 @@
 		  		//maingame.hud.setValue("stage","value","STAGE "+level); // Put on the screen the stage name (I'll explain what the "hud" is in the "initializeGame" function)
 
 
-				// Let's prepare the maze map now. Every stage is the same level but you can generate a new level each "changeLevel" call, using the "level" argument value.
-				// This is just an array with the tile id or NULL for an empty transparent space.
-				maze=help.finalizeTilemap({ // finalizeTilemap does some magic to the maze object: calculate real width/height of the map in pixels and values the "h" and "w" property.
-					tileset:"tiles", // This is the tileset used for rendering the map.
-					map:help.asciiArtToMap([ // Hey, wait! This is an ascii art of the map? Yes! "asciiArtToMap" convers an array of string in an array of arrays, using...
-				"..0mm.....",
-				"....m..m..",
-				".......mm.",
-				"......mm..",
-				"..........",
-				"..m...m...",
-				"....m0....",
-				"0..mm....m",
-				"mm.......m",
-				"mmm....m.0"
-				],[[0,"."],[10,"0"],[11,"m"]]), // ...this array as palette. Don't you think that a map like this is quite easy to edit and read with your on-the-go text editor?
-					tileIsSolid:function(obj,t){ // This function have to return true if the object "obj" is checking if the tile "t" is a wall, so...
-							return t==null || (obj.group != 'bug' && obj.group != 'will' && t!==0);
-					}
-
-				 });
-				gbox.createCanvas("mazecanvas",{w:maze.w,h:maze.h}); // Since finalizeMap have calculated the real height and width, we can create a canvas that fits perfectly our maze... Let's call it "mazecanvas".
-				gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
 
 				// Then, we need to count the number of pills to eat... quite crucial, to define when the maze was cleared. Since we're lazy, we're going to cycle the map and increase a counter instead of counting them by hand.
-				this.pillscount=1; // Yes. We're creating a custom counter into the "maingame" object. You can call this dirty. I call this flexibility. And relax :)
 
 
 				this.newLife(); // We will call the local "newLife" method, since this came displaces enemies and player every new level. Do you remember this in player? ;)
@@ -84,12 +71,29 @@
 		  	gbox.trashGroup("will");
 			gbox.trashGroup("sparks");
 		  	gbox.purgeGarbage(); // the gbox module have a garbage collector that runs sometime. Let's call this manually, for optimization (and better reinitialization)
-			toys.topview.spawn(gbox.getObject("player","player"),{x:maze.hw,y:maze.hh,accx:0,accy:0,xpushing:false,ypushing:false}); // Our "player" object into the "player" group spawns in the middle of the maze every time it spawns.
-			maingame.addBug(10, 10, 0);
-			maingame.addBug(20, 20, 1);
-			maingame.addBug(40,40,2);
-			maingame.addWill(9*30,10,0);
-			maingame.addWill(9*30,6*30,1);
+			willIndex = bugIndex = 0;
+			var pl = gbox.getObject("player","player");
+			toys.topview.spawn(pl,{accx:0,accy:0,xpushing:false,ypushing:false}); 
+			var xCurr = xMin;
+			var yCurr = yMin;
+			maingame.hud.setValue("xMinAc","value",leadingZeros(xCurr,2));
+			maingame.hud.setValue("yMinAc","value",leadingZeros(yCurr,2));
+			var plX = pl.x/30;
+			var plY = pl.y/30;
+			for(var i = 0; i < maze.map[0].length; i++){//x = xMin; x != (xMax + 1) % totalCells; x = (x + 1) % totalCells){
+				yCurr = yMin;
+				for(var j = 0; j < maze.map.length; j++){//var y = yMin; y != (yMax + 1) % totalCells; y = (y + 1) % totalCells){
+					//if (i < plX - 1 || i > plX + 1 || j < plY - 1 || j > plY + 1){
+						var rand = Alea(seed, xCurr, yCurr);
+						rand();//trash the first one since that was used to create the grid cell
+						addEntities(rand,i,j);
+					//}
+					yCurr = (yCurr + 1) % totalCells;
+				}
+				xCurr = (xCurr + 1) % totalCells;
+			}
+			maingame.hud.setValue("xMaxAc","value",leadingZeros(xCurr,2));
+			maingame.hud.setValue("yMaxAc","value",leadingZeros(yCurr,2));
 			gbox.playAudio("background"); // Start playing the ingame music. Notes that the "maingame" object will fade in/out and stop the "bgmusic" channel when the screen will fade automatically. We just need to play the music when the screen is fading to fade the music too!
 		  }
 
@@ -98,13 +102,22 @@
 		maingame.initializeGame=function() {
 
 			// Maingame gives an "hud" object that is rendered over everything. Really useful for indicators, like score, lives etc. The first thing we do is to populate this object.
+			maingame.hud.setWidget("xMin",{widget:"label",font:"small",value:leadingZeros(xMin,2),dx:20,dy:10,clear:true});
+			maingame.hud.setWidget("xMax",{widget:"label",font:"small",value:leadingZeros(xMax,2),dx:20,dy:20,clear:true});
+			maingame.hud.setWidget("yMin",{widget:"label",font:"small",value:leadingZeros(yMin,2),dx:20,dy:30,clear:true});
+			maingame.hud.setWidget("yMax",{widget:"label",font:"small",value:leadingZeros(yMax,2),dx:20,dy:40,clear:true});
+
+			maingame.hud.setWidget("xMinAc",{widget:"label",font:"small",value:0,dx:200,dy:10,clear:true});
+			maingame.hud.setWidget("xMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:20,clear:true});
+			maingame.hud.setWidget("yMinAc",{widget:"label",font:"small",value:0,dx:200,dy:30,clear:true});
+			maingame.hud.setWidget("yMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:40,clear:true});
+			//maingame.hud.setWidget("bugIndex",{widget:"label",font:"small",value:bugIndex,dx:20,dy:20,clear:true});
 			//maingame.hud.setWidget("label",{widget:"label",font:"small",value:"1UP",dx:240,dy:10,clear:true}); // This is a classic "1UP" static label. Unuseful but really retro!
 			//maingame.hud.setWidget("score",{widget:"label",font:"small",value:0,dx:240,dy:25,clear:true}); // A score counter. This not only is a displayed value but will really keep the player's score.
 			//maingame.hud.setWidget("label",{widget:"label",font:"small",value:"HI",dx:240,dy:40,clear:true}); // The "HI" label. Becouse "HI" is more retro.
 			//maingame.hud.setWidget("hiscore",{widget:"label",font:"small",value:0,dx:240,dy:55,clear:true}); // The hiscore counter. This one will be just used for displaying.
 
 			//maingame.hud.setWidget("lives",{widget:"symbols",minvalue:0,value:3-maingame.difficulty,maxshown:3,tileset:"player",tiles:[5],dx:240,dy:70,gapx:16,gapy:0}); // The classic life indicator, with repated player symbols. Note the "difficulty usage" ;)
-			maingame.hud.setWidget("stage",{widget:"label",font:"small",value:"",dx:0,dw:gbox.getScreenW()-5,dy:gbox.getScreenH()-13,halign:gbox.ALIGN_RIGHT,clear:true}); // The label with the stage name (low creativity: STAGE 1, STAGE 2 etc). Is empty for now, will be filled when a new level starts.
 
 			//maingame.hud.setValue("hiscore","value",gbox.dataLoad("player-hiscore")); // setValue is used to set parametes on hud. So, well, we're setting the "hiscore value" to the loaded data "player-hiscore" that contains the latest hiscore.
 
@@ -123,10 +136,53 @@
 			  });
 
 
-			// Now, let's add our player. The player is usually added once per match and "moved" in the map on level changes (as you've seen into the newLife method)
-			gbox.addObject(new Player());
+				var arrMap = new Array();
+				var xCurr = 0;
+				var yCurr = 0;
+				for(; yCurr <= yMax; yCurr++){//visible is just under 11 x 9
+					arrMap[yCurr] = new Array();
+					for(xCurr = 0; xCurr <= xMax; xCurr++){
+						arrMap[yCurr][xCurr] = arrPieces[Alea(seed,xCurr, yCurr)()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
+					}
+				}
+				// Let's prepare the maze map now. Every stage is the same level but you can generate a new level each "changeLevel" call, using the "level" argument value.
+				// This is just an array with the tile id or NULL for an empty transparent space.
+				maze=help.finalizeTilemap({ // finalizeTilemap does some magic to the maze object: calculate real width/height of the map in pixels and values the "h" and "w" property.
+					tileset:"tiles", // This is the tileset used for rendering the map.
+					map:arrMap,
+					tileIsSolid:function(obj,t){ // This function have to return true if the object "obj" is checking if the tile "t" is a wall, so...
+							return /*t==null || */(obj.group != 'bug' && obj.group != 'will' && t!==0);
+					}
 
+				 });
+				gbox.createCanvas("mazecanvas",{w:maze.w,h:maze.h}); // Since finalizeMap have calculated the real height and width, we can create a canvas that fits perfectly our maze... Let's call it "mazecanvas".
+				gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
+
+
+			// Now, let's add our player. The player is usually added once per match and "moved" in the map on level changes (as you've seen into the newLife method)
+			 var pl = new Player();
+			 pl.x = maze.hw;
+			 pl.y = maze.hh;
+			gbox.addObject(pl);
 	 	 }
+
+		function addEntities(rand,x,y){
+			if (rand() < willP){
+				maingame.addWill(x*30,y*30,willIndex++);
+			}
+			var num = rand();
+			if (num < bugP){
+				maingame.addBug(x*30,y*30,bugIndex++);
+				if (num < bugP*.6){
+					maingame.addBug(x*30,y*30,bugIndex++);
+					if (num < bugP*.6*.6){
+						maingame.addBug(x*30,y*30,bugIndex++);
+						if (num < bugP*.6*.6*.6)
+							maingame.addBug(x*30,y*30,bugIndex++);
+					}
+				}
+			}
+		}
 
 		maingame.addBug = function(x, y, index){
 			var bug = gbox.addObject(new Bug(x, y, index));
@@ -147,10 +203,122 @@
 		  	return isGameover; // Finally, returning if the game is ended or not.
 		  */return false;}
 
-		 maingame.gameEvents=function() { // This method happens every frame of the gameplay. You can keep here game timers or make happen random things, like...
+		 maingame.gameEvents=function() { 
+			 var shiftAmount = 1;//number of tiles to shift when player gets near edge
+			 var shiftPixels = 30*shiftAmount;
+			 var xShift = 0;
+			 var yShift = 0;
+			 var pl = gbox.getObject("player","player");
+			 var yCurr,xCurr,rand;
+			 if (pl.x < 6*30){//player hit left edge
+				 xMin = (xMin == 0 ? totalCells - 1 : xMin - 1);
+				 xMax = (xMax == 0 ? totalCells - 1 : xMax - 1);
+				 yCurr = yMin;
+				 xCurr = xMin;
+				 for(var i=0; i<maze.map.length; i++){
+					for(var j=0; j<shiftAmount;j++){
+						rand = Alea(seed,xCurr,yCurr);
+						maze.map[i].pop();
+						maze.map[i].unshift(arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/]);
+						addEntities(rand,-1,i)
+						yCurr = (yCurr + 1) % totalCells;
+				 	}
+				 }
+				 xShift = shiftPixels;
+				 //shift map x spaces left
+			 }else if (pl.x > maze.w-6*30){//player hit right edge
+				 xMin = (xMin + 1) % totalCells;
+				 xMax = (xMax + 1) % totalCells;
+				 yCurr = yMin;
+				 xCurr = xMax;
+				 for(var i=0; i<maze.map.length; i++){
+					 for(var j=0; j<shiftAmount;j++){
+						rand = Alea(seed,xCurr,yCurr);
+						 maze.map[i].shift();
+						 maze.map[i].push(arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/]);
+						 addEntities(rand,maze.map[0].length, i);
+						 yCurr = (yCurr + 1) % totalCells;
+					 }
+				 }
+				 xShift = -shiftPixels;
+				 //shift map x spaces right
+			 }
+			 if (pl.y < 5*30){//player hit top edge
+				 yMin = (yMin == 0 ? totalCells - 1 : yMin - 1);
+				 yMax = (yMax == 0 ? totalCells - 1 : yMax - 1);
+				 yCurr = yMin;
+				 xCurr = xMin;
+				 for(var i = 0; i < shiftAmount; i++){
+					 maze.map.pop();
+					 maze.map.unshift(new Array());
+					 for(var j = 0; j<maze.map[1].length; j++){
+						rand = Alea(seed,xCurr,yCurr);
+						 maze.map[0][j] = arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
+						 addEntities(rand,j,-1);
+						 xCurr = (xCurr + 1) % totalCells;
+					 }
+				 }
+				 yShift = shiftPixels;
+				 //shift map x spaces up
+			 } else if (pl.y > maze.h - 5*30){//player hit bottom edge
+				 yMin = (yMin + 1) % totalCells;
+				 yMax = (yMax + 1) % totalCells;
+				 yCurr = yMax;
+				 xCurr = xMin;
+				 for(var i = 0; i < shiftAmount; i++){
+					 maze.map.shift();
+					 maze.map.push(new Array());
+					 for(var j = 0; j<maze.map[0].length; j++){
+						rand = Alea(seed,xCurr,yCurr);
+						 maze.map[maze.map.length-1][j] = arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
+						 addEntities(rand,j,maze.map.length);
+						 xCurr = (xCurr + 1) % totalCells;
+					 }
+				 }
+				 yShift = -shiftPixels;
+				 //shift map x spaces down
+			 }
+			 if (xShift != 0 || yShift != 0)
+			 {
+				pl.y += yShift;
+				pl.x += xShift;
+				//gbox.centerCamera(pl,{w:maze.w,h:maze.h});
+				 for(var entity in gbox._objects["will"]){
+					 shiftEntity(gbox.getObject("will", entity), xShift, yShift);
+				 }
+				 for(var entity in gbox._objects["bug"]){
+					 shiftEntity(gbox.getObject("bug", entity), xShift, yShift);
+				 }
+			 }
+			gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
+			maingame.hud.setValue("xMin","value",leadingZeros(xMin,2));
+			maingame.hud.setValue("xMax","value",leadingZeros(xMax,2));
+			maingame.hud.setValue("yMin","value",leadingZeros(yMin,2));
+			maingame.hud.setValue("yMax","value",leadingZeros(yMax,2));
+			 // This method happens every frame of the gameplay. You can keep here game timers or make happen random things, like...
 		 //	if (maingame.pillscount==0) // ...check if the maze is clear...
 		//		maingame.gotoLevel(maingame.level+1); // ...and warp to the next level, if true.
 		  }
+
+		  function leadingZeros(val,totalWidth){
+			  var output = ""+val;
+			  while(output.length < totalWidth)
+				  output = "0"+output;
+			  return output;
+		  }
+
+		function shiftEntity(obj, xShift, yShift){
+			
+					 if ((obj.y < yShift && yShift < 0) || 
+						 (obj.y > maze.h - yShift && yShift > 0) ||
+						 (obj.x < xShift && xShift < 0) ||
+						 (obj.x > maze.w - xShift && xShift > 0))
+						gbox.trashObject(obj);
+					 else{
+				 		obj.y += yShift;
+						obj.x += xShift;
+					 }
+		}	
 
 
 		// Last but not least, the intro screen.
