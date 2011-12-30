@@ -22,6 +22,7 @@
 				var willIndex = 0;
 				var bugIndex = 0;
 				var baseURL, basePicURL;
+				var m_bDebug = false;
 
 		function actualURL(input){
 			var ending = input.substr(input.length - 3);
@@ -81,8 +82,10 @@
 			toys.topview.spawn(pl,{accx:0,accy:0,xpushing:false,ypushing:false}); 
 			var xCurr = xMin;
 			var yCurr = yMin;
-			maingame.hud.setValue("xMinAc","value",leadingZeros(xCurr,2));
-			maingame.hud.setValue("yMinAc","value",leadingZeros(yCurr,2));
+			if (m_bDebug){
+				maingame.hud.setValue("xMinAc","value",leadingZeros(xCurr,2));
+				maingame.hud.setValue("yMinAc","value",leadingZeros(yCurr,2));
+			}
 			var plXfloor = (pl.x/30)>>>0;
 			var plYfloor = (pl.y/30)>>>0;
 			var plXceil = Math.ceil(pl.x/30);
@@ -99,8 +102,10 @@
 				}
 				xCurr = (xCurr + 1) % totalCells;
 			}
-			maingame.hud.setValue("xMaxAc","value",leadingZeros(xCurr,2));
-			maingame.hud.setValue("yMaxAc","value",leadingZeros(yCurr,2));
+			if (m_bDebug){
+				maingame.hud.setValue("xMaxAc","value",leadingZeros(xCurr,2));
+				maingame.hud.setValue("yMaxAc","value",leadingZeros(yCurr,2));
+			}
 			gbox.playAudio("background"); // Start playing the ingame music. Notes that the "maingame" object will fade in/out and stop the "bgmusic" channel when the screen will fade automatically. We just need to play the music when the screen is fading to fade the music too!
 		  }
 
@@ -109,16 +114,18 @@
 		maingame.initializeGame=function() {
 
 			// Maingame gives an "hud" object that is rendered over everything. Really useful for indicators, like score, lives etc. The first thing we do is to populate this object.
-			maingame.hud.setWidget("xMin",{widget:"label",font:"small",value:leadingZeros(xMin,2),dx:20,dy:10,clear:true});
-			maingame.hud.setWidget("xMax",{widget:"label",font:"small",value:leadingZeros(xMax,2),dx:20,dy:20,clear:true});
-			maingame.hud.setWidget("yMin",{widget:"label",font:"small",value:leadingZeros(yMin,2),dx:20,dy:30,clear:true});
-			maingame.hud.setWidget("yMax",{widget:"label",font:"small",value:leadingZeros(yMax,2),dx:20,dy:40,clear:true});
+			if (m_bDebug){
+				maingame.hud.setWidget("xMin",{widget:"label",font:"small",value:leadingZeros(xMin,2),dx:20,dy:10,clear:true});
+				maingame.hud.setWidget("xMax",{widget:"label",font:"small",value:leadingZeros(xMax,2),dx:20,dy:20,clear:true});
+				maingame.hud.setWidget("yMin",{widget:"label",font:"small",value:leadingZeros(yMin,2),dx:20,dy:30,clear:true});
+				maingame.hud.setWidget("yMax",{widget:"label",font:"small",value:leadingZeros(yMax,2),dx:20,dy:40,clear:true});
 
-			maingame.hud.setWidget("xMinAc",{widget:"label",font:"small",value:0,dx:200,dy:10,clear:true});
-			maingame.hud.setWidget("xMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:20,clear:true});
-			maingame.hud.setWidget("yMinAc",{widget:"label",font:"small",value:0,dx:200,dy:30,clear:true});
-			maingame.hud.setWidget("yMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:40,clear:true});
-			//maingame.hud.setWidget("bugIndex",{widget:"label",font:"small",value:bugIndex,dx:20,dy:20,clear:true});
+				maingame.hud.setWidget("xMinAc",{widget:"label",font:"small",value:0,dx:200,dy:10,clear:true});
+				maingame.hud.setWidget("xMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:20,clear:true});
+				maingame.hud.setWidget("yMinAc",{widget:"label",font:"small",value:0,dx:200,dy:30,clear:true});
+				maingame.hud.setWidget("yMaxAc",{widget:"label",font:"small",value:0,dx:200,dy:40,clear:true});
+				//maingame.hud.setWidget("bugIndex",{widget:"label",font:"small",value:bugIndex,dx:20,dy:20,clear:true});
+			}
 			//maingame.hud.setWidget("label",{widget:"label",font:"small",value:"1UP",dx:240,dy:10,clear:true}); // This is a classic "1UP" static label. Unuseful but really retro!
 			//maingame.hud.setWidget("score",{widget:"label",font:"small",value:0,dx:240,dy:25,clear:true}); // A score counter. This not only is a displayed value but will really keep the player's score.
 			//maingame.hud.setWidget("label",{widget:"label",font:"small",value:"HI",dx:240,dy:40,clear:true}); // The "HI" label. Becouse "HI" is more retro.
@@ -298,10 +305,12 @@
 				 }
 			 }
 			gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
-			maingame.hud.setValue("xMin","value",leadingZeros(xMin,2));
-			maingame.hud.setValue("xMax","value",leadingZeros(xMax,2));
-			maingame.hud.setValue("yMin","value",leadingZeros(yMin,2));
-			maingame.hud.setValue("yMax","value",leadingZeros(yMax,2));
+			if (m_bDebug){
+				maingame.hud.setValue("xMin","value",leadingZeros(xMin,2));
+				maingame.hud.setValue("xMax","value",leadingZeros(xMax,2));
+				maingame.hud.setValue("yMin","value",leadingZeros(yMin,2));
+				maingame.hud.setValue("yMax","value",leadingZeros(yMax,2));
+			}
 			 // This method happens every frame of the gameplay. You can keep here game timers or make happen random things, like...
 		 //	if (maingame.pillscount==0) // ...check if the maze is clear...
 		//		maingame.gotoLevel(maingame.level+1); // ...and warp to the next level, if true.
