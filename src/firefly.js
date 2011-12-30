@@ -21,10 +21,11 @@
 				var willP = .01;
 				var willIndex = 0;
 				var bugIndex = 0;
-				var baseURL;
+				var baseURL, basePicURL;
 
 		function actualURL(input){
-			return (baseURL != undefined ? baseURL + input : input);
+			var ending = input.substr(input.length - 3);
+			return (ending == 'png' && basePicURL != undefined ? basePicURL : (baseURL != undefined ? baseURL : '')) + input;
 		}
 
 		// First of all, let's load all the needed resources. Is done on the "onLoad" event of the window.
@@ -36,7 +37,7 @@
 				minimalTime:0}//custom splash screen
 			});
 
-			gbox.addBundle({file:actualURL("resources/bundle.js")});//load resources, if you do it this way, then the splash screen shows while loading other resources
+			gbox.addBundle({file:"resources/bundle.js"/*actualURL("resources/bundle.js")*/});//load resources, if you do it this way, then the splash screen shows while loading other resources
 
 			gbox.loadAll(go); // When everything is ready, the "loadAll" downloads all the needed resources and runs the "go" function when it's done loading.
 
