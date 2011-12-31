@@ -19,12 +19,12 @@ var Player = function(){
 							standright:{ speed:1, frames:[6] },
 							movingup:{speed:3,frames:[0,1,0,2] },
 							movingdown:{speed:3,frames:[3,4,3,5] },
-							movingleft:{speed:3,frames:[6,7] },
-							movingright:{speed:3,frames:[6,7] },
+							movingleft:{speed:3,frames:[6,7,6,8] },
+							movingright:{speed:3,frames:[6,7,6,8] },
 							pushingup:{speed:6,frames:[0,1,0,2] },
 							pushingdown:{speed:6,frames:[3,4,3,5] },
-							pushingleft:{speed:6,frames:[6,7] },
-							pushingright:{speed:6,frames:[6,7] }
+							pushingleft:{speed:6,frames:[6,7,6,8] },
+							pushingright:{speed:6,frames:[6,7,6,8] }
 						}
 						// What? Starting "x" and "y" are not here. That's because, when the first level starts, the "newLife" calls "spawn" over the player, setting the position.
 					});
@@ -36,7 +36,7 @@ attack:function() {
 		gbox.hitAudio("swing");
 
 		this.stilltimer=10; // Stay still for a while
-		this.frame=(this.facing==toys.FACE_UP?9:(this.facing==toys.FACE_DOWN?10:11));
+		//this.frame=(this.facing==toys.FACE_UP?9:(this.facing==toys.FACE_DOWN?10:11));
 
 		 // net
 				toys.topview.fireBullet("playerbullets",null,{
@@ -48,7 +48,7 @@ attack:function() {
 					sidex:this.facing,
 					sidey:this.facing,
 					tileset:((this.facing==toys.FACE_LEFT)||(this.facing==toys.FACE_RIGHT)?"lefthit":"uphit"),
-					frames:{speed:1,frames:[0,1,2,3]},
+					frames:{speed:1,frames:[0,0,0,0]},
 					duration:4,
 					acc:5,
 					fliph:(this.facing==toys.FACE_RIGHT),

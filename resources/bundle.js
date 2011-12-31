@@ -16,12 +16,12 @@
 			// Sometime you can find pixel fonts with multiple colors, one per row/block. You can map multiple fonts on the same image, so create many fonts, one for each color.
 
 	addTiles:[
-		{id:"player",image:"sprites",tileh:30,tilew:30,tilerow:12,gapx:0,gapy:0},
-		{id:"bug", image:"sprites", tileh:10, tilew:10, tilerow:1, gapx:109, gapy:163},
-		{id:"will", image:"sprites", tileh:30,tilew:30,tilerow:1, gapx:120, gapy:155},
-
-		{id:"lefthit",image:"sprites",tileh:40,tilew:20,tilerow:4,gapx:0,gapy:30},
-		{id:"uphit",image:"sprites",tileh:20,tilew:40,tilerow:4,gapx:0,gapy:70},
+		{id:"player",image:"sprites",tileh:40,tilew:40,tilerow:9,gapx:0,gapy:0},
+		{id:"bug", image:"sprites", tileh:40, tilew:40, tilerow:1, gapx:360, gapy:0},
+		{id:"will", image:"sprites", tileh:40,tilew:40,tilerow:1, gapx:360, gapy:0},
+		{id:"lefthit",image:"sprites",tileh:40,tilew:10,tilerow:1,gapx:360,gapy:0},
+		{id:"uphit",image:"sprites",tileh:10,tilew:40,tilerow:1,gapx:360,gapy:0},
+		/*
 		{id:"foe1",image:"sprites",tileh:30,tilew:30,tilerow:12,gapx:0,gapy:90},
 		{id:"shadows",image:"sprites",tileh:15,tilew:30,tilerow:12,gapx:0,gapy:120},
 		{id:"bonus",image:"sprites",tileh:20,tilew:20,tilerow:12,gapx:0,gapy:135},
@@ -44,15 +44,14 @@
 		{id:"items",image:"sprites",tileh:20,tilew:20,tilerow:2,gapx:0,gapy:362},
 		{id:"npc",image:"sprites",tileh:30,tilew:30,tilerow:10,gapx:0,gapy:382},
 
-		{id:"house",image:"sprites",tileh:90,tilew:90,tilerow:1,gapx:0,gapy:412},
-		{id:"tiles",image:"tiles",tileh:30,tilew:30,tilerow:10,gapx:0,gapy:0}	
+		{id:"house",image:"sprites",tileh:90,tilew:90,tilerow:1,gapx:0,gapy:412},*/
+		{id:"tiles",image:"tiles",tileh:30,tilew:30,tilerow:5,gapx:90,gapy:0}	
 	], // The tilesets are taken from the sprite sheet too.
 
 			// Now let's load some audio samples...
 	addAudio:[
 		["default-menu-option",[actualURL("resources/audio/select.mp3"),actualURL("resources/audio/select.ogg")],{channel:"sfx"}], // These are default sounds: are played maingame object during menus.
-		["default-menu-confirm",[actualURL("resources/audio/start.mp3"),actualURL("resources/audio/start.ogg")],{channel:"sfx"}],
-		["background", [actualURL("resources/audio/264255_sourcreeeem.mp3")],{channel:"bgmusic", loop:true}]
+		["default-menu-confirm",[actualURL("resources/audio/start.mp3"),actualURL("resources/audio/start.ogg")],{channel:"sfx"}]
 			] // This one is the ingame music. We're putting this into the "bgmusic" channel and will be looped: once ended will start over. Note that creating audio into the bgmusic channel makes them "lighter" for the browser, since is ready to be played only one at time.
 
 	

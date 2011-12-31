@@ -9,7 +9,7 @@
 		  // These objects will be reachable everywhere. Usually are the levels, the dialogues and the maingame object.
 		  var maingame; // The magic object that handles the full play cycle
 		  var maze; // The maze array, with pills and walls
-		var arrPieces = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,11,11];
+		var arrPieces = [0];//[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,11,11];
 		//I think this is the smallest map I can do with this setup, we will use this for testing for now
 				var totalCells = 13//11*2+1;//Math.pow(2, 52);
 				var xMin = 0;
@@ -106,7 +106,7 @@
 				maingame.hud.setValue("xMaxAc","value",leadingZeros(xCurr,2));
 				maingame.hud.setValue("yMaxAc","value",leadingZeros(yCurr,2));
 			}
-			gbox.playAudio("background"); // Start playing the ingame music. Notes that the "maingame" object will fade in/out and stop the "bgmusic" channel when the screen will fade automatically. We just need to play the music when the screen is fading to fade the music too!
+			//gbox.playAudio("background"); // Start playing the ingame music. Notes that the "maingame" object will fade in/out and stop the "bgmusic" channel when the screen will fade automatically. We just need to play the music when the screen is fading to fade the music too!
 		  }
 
 
@@ -165,7 +165,7 @@
 					tileset:"tiles", // This is the tileset used for rendering the map.
 					map:arrMap,
 					tileIsSolid:function(obj,t){ // This function have to return true if the object "obj" is checking if the tile "t" is a wall, so...
-							return /*t==null || */(obj.group != 'bug' && obj.group != 'will' && t!==0);
+							return false;/*t==null || *///(obj.group != 'bug' && obj.group != 'will' && t!==0);
 					}
 
 				 });
@@ -204,6 +204,7 @@
 		}
 
 		maingame.addWill = function(x,y,index){
+			return;//we will include wills later
 			var will = gbox.addObject(new Will(x, y, index));
 			return will;
 		}
