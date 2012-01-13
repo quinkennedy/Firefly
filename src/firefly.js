@@ -8,7 +8,7 @@
 
 		  // These objects will be reachable everywhere. Usually are the levels, the dialogues and the maingame object.
 		  var maingame; // The magic object that handles the full play cycle
-		  var maze; // The maze array, with pills and walls
+		  var maze,maze1,maze2,maze3,maze4,maze5; // The maze array, with pills and walls
 		var arrPieces = [0];//[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,11,11];
 		//I think this is the smallest map I can do with this setup, we will use this for testing for now
 				var totalCells = 13//11*2+1;//Math.pow(2, 52);
@@ -17,12 +17,18 @@
 				var yMin = 0;
 				var yMax = 10;//9*2-1;
 				var seed = new Date();
-				var bugP = .01;
+				var bugP = .05;
 				var willP = .01;
 				var willIndex = 0;
 				var bugIndex = 0;
 				var baseURL, basePicURL;
 				var m_bDebug = false;
+				var lightType = 8;//1 = hard edges, 2 = cos fading between, 3 = cos fading overall w/ hard edges between, 4 = cos fading between (2 levels only), 5 = like 2 but diff implementation, 6= hard squares, 7 = cos between (using gradients),8 = indiv squares
+
+				var lightData = 0;
+				//var arrFade;
+				var fadeSetX = 0;
+				var fadeSetY = 0;
 
 		function actualURL(input){
 			var ending = input.substr(input.length - 3);
@@ -47,7 +53,7 @@
 		  function go() {
 
 		  	// The very first thing to do is to set which groups will be involved in the game. Groups can be used for grouped collision detection and for rendering order
-		 	gbox.setGroups(["background","player","sparks","bug","will","playerbullets","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
+		 	gbox.setGroups(["background","ground","player","sparks","bug","will","playerbullets","gamecycle"]); // Usually the background is the last thing rendered. The last thing is "gamecycle", that means games messages, like "gameover", menus etc.
 		 	gbox.setAudioChannels({bgmusic:{volume:0.8},sfx:{volume:1.0}}); // If we're going to add audio to our game, we have to create virtual channels. Channels acts like groups but for audio: audio on the same channels can be stopped together and shares the same highest volume.
 
 
@@ -90,9 +96,9 @@
 			var plYfloor = (pl.y/30)>>>0;
 			var plXceil = Math.ceil(pl.x/30);
 			var plYceil = Math.ceil(pl.x/30);
-			for(var i = 0; i < maze.map[0].length; i++){
+			for(var i = 0; i < maze1.map[0].length; i++){
 				yCurr = yMin;
-				for(var j = 0; j < maze.map.length; j++){
+				for(var j = 0; j < maze1.map.length; j++){
 					if (i < plXfloor - 1 || i > plXceil + 1 || j < plYfloor - 1 || j > plYceil + 1){
 						var rand = Alea(seed, xCurr, yCurr);
 						rand();//trash the first one since that was used to create the grid cell
@@ -143,9 +149,316 @@
 					//gbox.setCameraY(0,{w:maze.w,h:maze.h}); // We place the camera a bit down, since the full maze doesn't fit the screen.
 				//},
 				blit:function() { // Then, the most important action: the "blit", where object are drawn on the screen.
-					gbox.centerCamera(gbox.getObject("player","player"),{w:maze.w,h:maze.h});
+					var pl = gbox.getObject("player","player");
+					gbox.centerCamera(pl,{w:maze1.w,h:maze1.h});
 					gbox.blitFade(gbox.getBufferContext(),{alpha:1}); // First let's clear the whole screen. Blitfade draws a filled rectangle over the given context (in this case, the screen)
-					gbox.blit(gbox.getBufferContext(),gbox.getCanvas("mazecanvas"),{dx:0,dy:0,dw:gbox.getCanvas("mazecanvas").width,dh:gbox.getCanvas("mazecanvas").height,sourcecamera:true}); // Simply draw the maze on the screen.
+					if (lightType == 8){return;}
+					if (lightType == 1 || lightType == 3 || lightType == 6 || lightType == 7){
+						DrawTypes[lightType == 1 ? 0 : lightType == 3 ? 1 : lightType == 6 ? 2 : 3].blit();
+						return;
+					}
+
+					var bLightChanged = lightData != pl.bugs;
+					if (bLightChanged){
+						if (lightData > pl.bugs){
+				 			lightData = pl.bugs;
+						}else{
+							lightData += .3;
+							if (lightData > pl.bugs){
+				 				lightData = pl.bugs;
+							}
+						}
+						fadeSetX = pl.x;
+						fadeSetY = pl.y;
+					}
+					var canv = gbox.getCanvas("mazecanvas");
+					var ctx = canv.getContext("2d");
+					var imgd = ctx.getImageData(0,0,canv.width,canv.height);
+					var result = imgd.data;
+					var arrSrcImg = [gbox.getCanvas("mazeCanvas1"),
+					    		gbox.getCanvas("mazeCanvas2"),
+					    		gbox.getCanvas("mazeCanvas3"),
+					    		gbox.getCanvas("mazeCanvas4"),
+					    		gbox.getCanvas("mazeCanvas5")];
+					var src = [gbox.getCanvas("mazeCanvas1").getContext("2d").getImageData(0,0,canv.width,canv.height).data,
+					 		gbox.getCanvas("mazeCanvas2").getContext("2d").getImageData(0,0,canv.width,canv.height).data,
+							gbox.getCanvas("mazeCanvas3").getContext("2d").getImageData(0,0,canv.width,canv.height).data,
+							gbox.getCanvas("mazeCanvas4").getContext("2d").getImageData(0,0,canv.width,canv.height).data,
+							gbox.getCanvas("mazeCanvas5").getContext("2d").getImageData(0,0,canv.width,canv.height).data];
+					var fade,fadeCtx,fadeD;
+					var arrFadeCanv,arrFade,arrFadeCtx,arrFadeD;
+					if (lightType == 2 || lightType == 4 || lightType == 5 || lightType == 6){
+						fadeCtx = gbox.getCanvas("fade").getContext("2d");
+						fade = fadeCtx.getImageData(fadeSetX-pl.x,fadeSetY-pl.y,canv.width,canv.height);
+						fadeD = fade.data;
+						arrFadeCanv = [gbox.getCanvas("fade1"),
+							    gbox.getCanvas("fade2"),
+							    gbox.getCanvas("fade3"),
+							    gbox.getCanvas("fade4"),
+							    gbox.getCanvas("fade5")]
+						arrFadeCtx = [arrFadeCanv[0].getContext("2d"),
+							    arrFadeCanv[1].getContext("2d"),
+							    arrFadeCanv[2].getContext("2d"),
+							    arrFadeCanv[3].getContext("2d"),
+							    arrFadeCanv[4].getContext("2d")];
+						var x = 0;//fadeSetX-pl.x;
+						var y = 0;//fadeSetY-pl.y;
+						var w = canv.width;
+						var h = canv.height;
+						arrFade = [arrFadeCtx[0].getImageData(x,y,w,h),
+							arrFadeCtx[1].getImageData(x,y,w,h),
+							arrFadeCtx[2].getImageData(x,y,w,h),
+							arrFadeCtx[3].getImageData(x,y,w,h),
+							arrFadeCtx[4].getImageData(x,y,w,h)];
+						arrFadeD = [arrFade[0].data,
+							 arrFade[1].data,
+							 arrFade[2].data,
+							 arrFade[3].data,
+							 arrFade[4].data];
+					}
+					var playerX = pl.x+pl.hw;//canv.width/2;
+					var playerY = pl.y+pl.h-7;//canv.height/2;
+					var currX = 0;
+					var currY = 0;
+					var dist;
+					if (lightType == 6){
+						for(var i = 0; i < arrFade.length; i++){
+							arrFadeCtx[i].setCompositeOperation("source-over");// = "source-in";
+							arrFadeCtx[i].fillRect(playerX - (20*i), playerY - (20*i), (40*i), (40*i));
+							arrFadeCtx[i].setCompositeOperation("source-in");
+							arrFadeCtx[i].drawImage(arrSrcImg[i],0, 0, canv.width, canv.height);
+							arrFadeCtx[i].setCompositeOperation("source-over");
+						}
+					} else {
+					for(var i = 0; i < result.length; i+= 4){
+						dist = Math.sqrt(Math.pow((currX-playerX),2)+Math.pow((currY-playerY)*1.4,2));
+						switch (lightType){
+							case 2:
+							case 4:
+								var func = function(destination,index,source1,source2,ratio){
+									destination[index] = source1[index] * ratio + (source2 ? (source2[index] * (1-ratio)) : 0);
+									destination[index + 1] = source1[index + 1] * ratio + (source2 ? (source2[index + 1] *  (1-ratio)) : 0);
+									destination[index + 2] = source1[index + 2] * ratio + (source2 ? (source2[index + 2] *  (1-ratio)) : 0);
+									destination[index + 3] = 255;
+								};
+								if (dist < lightData * 10){
+									if (lightType == 4){
+										if (dist > (lightData - 15) * 10){
+											//dim 4 -> black
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 15),0) * 10))*Math.PI/150)/2+.5;
+												fadeD[i+3] = (r * 255)>>>0;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[3],null,r);
+										} else if (dist > (lightData - 20) * 10){
+											//fully 4
+											func(result,i,src[3],null,1);
+										} else if (dist > (lightData - 35) * 10){
+											//dim 1 -> 4
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 35),0) * 10))*Math.PI/150)/2+.5;
+												fadeD[i+3] = (r * 255)>>>0;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[0],src[3],r);
+										} else {
+											//fully 1;
+											func(result,i,src[0],null,1);
+										}
+									} else {
+										if (dist > (lightData-4) * 10){
+											//dim 5 -> black
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 4),0) * 10))*Math.PI/40)/2+.5;
+												fadeD[i+3] = (r * 255)>>>0;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[4],null,r);
+										} else if (dist > (lightData - 5) * 10){
+											//fully 5;
+											func(result,i,src[4],null,1);
+										} else if (dist > (lightData - 9) * 10){
+											//dim 4 -> 5
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 9),0) * 10))*Math.PI/40)/2+.5;
+												fadeD[i+3] = r * 255;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[3],src[4],r);
+										} else if (dist > (lightData - 10) * 10){
+											//fully 4
+											func(result,i,src[3],null,1);
+										} else if (dist > (lightData - 14) * 10){
+											//dim 3 -> 4
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 14),0) * 10))*Math.PI/40)/2+.5;
+												fadeD[i+3] = r * 255;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[2],src[3],r);
+										} else if (dist > (lightData - 15) * 10){
+											//fully 3
+											func(result,i,src[2],null,1);
+										} else if (dist > (lightData - 19) * 10){
+											//dim 2 -> 3
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 19),0) * 10))*Math.PI/40)/2+.5;
+												fadeD[i+3] = r * 255;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[1],src[2],r);
+										} else if (dist > (lightData - 20) * 10){
+											//fully 2
+											func(result,i,src[1],null,1);
+										} else if (dist > (lightData - 24) * 10){
+											//fully 1 -> 2
+											var r;
+											if (bLightChanged){
+												r = Math.cos((dist - (Math.max((lightData - 24),0) * 10))*Math.PI/40)/2+.5;
+												fadeD[i+3] = r * 255;
+											} else {
+												r = fadeD[i+3]/255;
+											}
+											func(result,i,src[0],src[1],r);
+										} else if (dist > (lightData - 25) * 10){
+											//fully 1
+											func(result,i,src[0],null,1);
+										}
+									}
+								} else {
+									result[i+3] = 0;
+								}
+								break;
+							case 5:
+								if (dist < lightData * 10){
+									var idx1,idx2,value;
+									if (dist > (lightData-4) * 10){
+										//dim 5 -> black
+										if (bLightChanged){
+											value = Math.cos((dist - (Math.max((lightData - 4),0) * 10))*Math.PI/40)/2+.5;
+											value *= 255;
+										}
+										idx1 = 4;
+										idx2 = null;
+									} else if (dist > (lightData - 5) * 10){
+										//fully 5;
+										value = 255;
+										idx1 = 4;
+										idx2 = null;
+									} else if (dist > (lightData - 9) * 10){
+										//dim 4 -> 5
+										if (bLightChanged){
+											value = Math.cos((dist - (Math.max((lightData - 9),0) * 10))*Math.PI/40)/2+.5;
+											value *= 255;
+										}
+										idx1 = 3;
+										idx2 = 4;
+									} else if (dist > (lightData - 10) * 10){
+										//fully 4
+										value = 255;
+										idx1 = 3;
+										idx2 = null;
+									} else if (dist > (lightData - 14) * 10){
+										//dim 3 -> 4
+										if (bLightChanged){
+											value = Math.cos((dist - (Math.max((lightData - 14),0) * 10))*Math.PI/40)/2+.5;
+											value *= 255;
+										}
+										idx1 = 2;
+										idx2 = 3;
+									} else if (dist > (lightData - 15) * 10){
+										//fully 3
+										value = 255;
+										idx1 = 2;
+										idx2 = null;
+									} else if (dist > (lightData - 19) * 10){
+										//dim 2 -> 3
+										if (bLightChanged){
+											value = Math.cos((dist - (Math.max((lightData - 19),0) * 10))*Math.PI/40)/2+.5;
+											value *= 255;
+										}
+										idx1 = 1;
+										idx2 = 2;
+									} else if (dist > (lightData - 20) * 10){
+										//fully 2
+										value = 255;
+										idx1 = 1;
+										idx2 = null
+									} else if (dist > (lightData - 24) * 10){
+										//fully 1 -> 2
+										if (bLightChanged){
+											value = Math.cos((dist - (Math.max((lightData - 24),0) * 10))*Math.PI/40)/2+.5;
+											value *= 255;
+										}
+										idx1 = 0;
+										idx2 = 1;
+									} else if (dist > (lightData - 25) * 10){
+										//fully 1
+										value = 255;
+										idx1 = 0;
+										idx2 = null;
+									}
+
+									if(bLightChanged){
+										arrFadeD[idx1][i+3] = value;
+									}
+									arrFadeD[idx1][i] = src[idx1][i];
+									arrFadeD[idx1][i+1] = src[idx1][i+1];
+									arrFadeD[idx1][i+2] = src[idx1][i+2];
+									if (idx2){
+										if (bLightChanged){
+											arrFadeD[idx2][i+3] = 255;
+										}
+										arrFadeD[idx2][i] = src[idx2][i];
+										arrFadeD[idx2][i+1] = src[idx2][i+1];
+										arrFadeD[idx2][i+2] = src[idx2][i+2];
+									}	
+								}
+								break;
+						}
+
+						if (currX >= canv.width - 1){
+							currY++;
+							currX = 0;
+						} else {
+							currX++;
+						}
+					}
+					}
+
+					if ((lightType == 2 || lightType == 4 || lightType == 5) && bLightChanged){
+						fadeCtx.putImageData(fade,fadeSetX-pl.x,fadeSetY-pl.y);
+					}
+					if (lightType == 5 || lightType == 6){
+						var x = pl.x - fadeSetX;
+						var y = pl.y - fadeSetY;
+						var w = canv.width;
+						var h = canv.height;
+						for(var i = arrFade.length - 1; i >= 0; i--){
+							if (lightType == 5){
+								arrFadeCtx[i].putImageData(arrFade[i],x,y);
+							}
+							gbox.blit(gbox.getBufferContext(),arrFadeCanv[i],{dx:0,dy:0,dw:w,dh:h,sourcecamera:true});
+						}
+						fadeSetX = pl.x;
+						fadeSetY = pl.y;
+					} else {
+			 			ctx.putImageData(imgd,0,0);
+						gbox.blit(gbox.getBufferContext(),canv,{dx:0,dy:0,dw:canv.width,dh:canv.height,sourcecamera:true}); // Simply draw the maze on the screen.
+					}
 				}
 			  });
 
@@ -157,26 +470,59 @@
 					arrMap[yCurr] = new Array();
 					for(xCurr = 0; xCurr <= xMax; xCurr++){
 						arrMap[yCurr][xCurr] = arrPieces[Alea(seed,xCurr, yCurr)()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
+						if (lightType == 8){
+							maingame.addGround(xCurr*30,yCurr*30,""+xCurr+":"+yCurr);
+						}
 					}
 				}
 				// Let's prepare the maze map now. Every stage is the same level but you can generate a new level each "changeLevel" call, using the "level" argument value.
 				// This is just an array with the tile id or NULL for an empty transparent space.
-				maze=help.finalizeTilemap({ // finalizeTilemap does some magic to the maze object: calculate real width/height of the map in pixels and values the "h" and "w" property.
+				/*maze=help.finalizeTilemap({ // finalizeTilemap does some magic to the maze object: calculate real width/height of the map in pixels and values the "h" and "w" property.
 					tileset:"tiles", // This is the tileset used for rendering the map.
 					map:arrMap,
 					tileIsSolid:function(obj,t){ // This function have to return true if the object "obj" is checking if the tile "t" is a wall, so...
 							return false;/*t==null || *///(obj.group != 'bug' && obj.group != 'will' && t!==0);
-					}
+				/*	}
 
-				 });
-				gbox.createCanvas("mazecanvas",{w:maze.w,h:maze.h}); // Since finalizeMap have calculated the real height and width, we can create a canvas that fits perfectly our maze... Let's call it "mazecanvas".
-				gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
+				 });*/
+				
 
+				maze1=help.finalizeTilemap({tileset:"tiles1",map:arrMap,tileIsSolid:function(){return false;}});
+				gbox.createCanvas("mazeCanvas1",{w:maze1.w,h:maze1.h});
+				gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas1"), maze1);
+				maze2=help.finalizeTilemap({tileset:"tiles2",map:arrMap,tileIsSolid:function(){return false;}});
+				gbox.createCanvas("mazeCanvas2",{w:maze1.w,h:maze1.h});
+				gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas2"), maze2);
+				maze3=help.finalizeTilemap({tileset:"tiles3",map:arrMap,tileIsSolid:function(){return false;}});
+				gbox.createCanvas("mazeCanvas3",{w:maze1.w,h:maze1.h});
+				gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas3"), maze3);
+				maze4=help.finalizeTilemap({tileset:"tiles4",map:arrMap,tileIsSolid:function(){return false;}});
+				gbox.createCanvas("mazeCanvas4",{w:maze1.w,h:maze1.h});
+				gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas4"), maze4);
+				maze5=help.finalizeTilemap({tileset:"tiles5",map:arrMap,tileIsSolid:function(){return false;}});
+				gbox.createCanvas("mazeCanvas5",{w:maze1.w,h:maze1.h});
+				gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas5"), maze5);
+
+				if (lightType == 1 || lightType == 3 || lightType == 6 || lightType == 7){
+					DrawTypes[lightType == 1 ? 0 : lightType == 3 ? 1 : lightType == 6 ? 2 : 3].init();
+				}else{
+				if (lightType == 2 || lightType == 4 || lightType == 5 || lightType == 6){
+					//arrFade = new Array();
+					gbox.createCanvas("fade",{w:maze1.w,h:maze1.h});
+					gbox.createCanvas("fade1",{w:maze1.w,h:maze1.h});
+					gbox.createCanvas("fade2",{w:maze1.w,h:maze1.h});
+					gbox.createCanvas("fade3",{w:maze1.w,h:maze1.h});
+					gbox.createCanvas("fade4",{w:maze1.w,h:maze1.h});
+					gbox.createCanvas("fade5",{w:maze1.w,h:maze1.h});
+				}
+				}
+				gbox.createCanvas("mazecanvas",{w:maze1.w,h:maze1.h}); // Since finalizeMap have calculated the real height and width, we can create a canvas that fits perfectly our maze... Let's call it "mazecanvas".
+				//gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
 
 			// Now, let's add our player. The player is usually added once per match and "moved" in the map on level changes (as you've seen into the newLife method)
 			 var pl = new Player();
-			 pl.x = maze.hw;
-			 pl.y = maze.hh;
+			 pl.x = maze1.hw;
+			 pl.y = maze1.hh;
 			gbox.addObject(pl);
 	 	 }
 
@@ -209,6 +555,10 @@
 			return will;
 		}
 
+		maingame.addGround = function(x,y,name){
+			return gbox.addObject(new Ground(x,y,name));
+		}
+
 	 	 // Some final touch to the maingame object...
 		  maingame.gameIsOver=function() { // This method is called by maingame itself to check if the game is over or not. So...
 		  	/*var isGameover=maingame.hud.getValue("lives","value")==0; // the game is REALLY over when lives counter reaches the zero.
@@ -230,28 +580,34 @@
 				 xMax = (xMax == 0 ? totalCells - 1 : xMax - 1);
 				 yCurr = yMin;
 				 xCurr = xMin;
-				 for(var i=0; i<maze.map.length; i++){
+				 for(var i=0; i<maze1.map.length; i++){
 					for(var j=0; j<shiftAmount;j++){
+						if (lightType == 8){
+							maingame.addGround((-1)*30,i*30,""+xCurr+":"+yCurr);
+						}
 						rand = Alea(seed,xCurr,yCurr);
-						maze.map[i].pop();
-						maze.map[i].unshift(arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/]);
+						maze1.map[i].pop();
+						maze1.map[i].unshift(arrPieces[rand()*arrPieces.length>>>0]);
 						addEntities(rand,-1,i)
 						yCurr = (yCurr + 1) % totalCells;
 				 	}
 				 }
 				 xShift = shiftPixels;
 				 //shift map x spaces left
-			 }else if (pl.x > maze.w-6*30){//player hit right edge
+			 }else if (pl.x > maze1.w-6*30){//player hit right edge
 				 xMin = (xMin + 1) % totalCells;
 				 xMax = (xMax + 1) % totalCells;
 				 yCurr = yMin;
 				 xCurr = xMax;
-				 for(var i=0; i<maze.map.length; i++){
+				 for(var i=0; i<maze1.map.length; i++){
 					 for(var j=0; j<shiftAmount;j++){
+						if (lightType == 8){
+							maingame.addGround((maze1.map[0].length)*30,i*30,""+xCurr+":"+yCurr);
+						}
 						rand = Alea(seed,xCurr,yCurr);
-						 maze.map[i].shift();
-						 maze.map[i].push(arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/]);
-						 addEntities(rand,maze.map[0].length, i);
+						 maze1.map[i].shift();
+						 maze1.map[i].push(arrPieces[rand()*arrPieces.length>>>0]);
+						 addEntities(rand,maze1.map[0].length, i);
 						 yCurr = (yCurr + 1) % totalCells;
 					 }
 				 }
@@ -264,29 +620,35 @@
 				 yCurr = yMin;
 				 xCurr = xMin;
 				 for(var i = 0; i < shiftAmount; i++){
-					 maze.map.pop();
-					 maze.map.unshift(new Array());
-					 for(var j = 0; j<maze.map[1].length; j++){
+					 maze1.map.pop();
+					 maze1.map.unshift(new Array());
+					 for(var j = 0; j<maze1.map[1].length; j++){
+						if (lightType == 8){
+							maingame.addGround(j*30,(-1)*30,""+xCurr+":"+yCurr);
+						}
 						rand = Alea(seed,xCurr,yCurr);
-						 maze.map[0][j] = arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
+						 maze1.map[0][j] = arrPieces[rand()*arrPieces.length>>>0];
 						 addEntities(rand,j,-1);
 						 xCurr = (xCurr + 1) % totalCells;
 					 }
 				 }
 				 yShift = shiftPixels;
 				 //shift map x spaces up
-			 } else if (pl.y > maze.h - 5*30){//player hit bottom edge
+			 } else if (pl.y > maze1.h - 5*30){//player hit bottom edge
 				 yMin = (yMin + 1) % totalCells;
 				 yMax = (yMax + 1) % totalCells;
 				 yCurr = yMax;
 				 xCurr = xMin;
 				 for(var i = 0; i < shiftAmount; i++){
-					 maze.map.shift();
-					 maze.map.push(new Array());
-					 for(var j = 0; j<maze.map[0].length; j++){
+					 maze1.map.shift();
+					 maze1.map.push(new Array());
+					 for(var j = 0; j<maze1.map[0].length; j++){
+						if (lightType == 8){
+							maingame.addGround(j*30,(maze1.map.length)*30,""+xCurr+":"+yCurr);
+						}
 						rand = Alea(seed,xCurr,yCurr);
-						 maze.map[maze.map.length-1][j] = arrPieces[rand()*arrPieces.length>>>0/*help.random(0,arrPieces.length)*/];
-						 addEntities(rand,j,maze.map.length);
+						 maze1.map[maze1.map.length-1][j] = arrPieces[rand()*arrPieces.length>>>0];
+						 addEntities(rand,j,maze1.map.length);
 						 xCurr = (xCurr + 1) % totalCells;
 					 }
 				 }
@@ -297,15 +659,24 @@
 			 {
 				pl.y += yShift;
 				pl.x += xShift;
-				//gbox.centerCamera(pl,{w:maze.w,h:maze.h});
 				 for(var entity in gbox._objects["will"]){
 					 shiftEntity(gbox.getObject("will", entity), xShift, yShift);
 				 }
 				 for(var entity in gbox._objects["bug"]){
 					 shiftEntity(gbox.getObject("bug", entity), xShift, yShift);
 				 }
+				 if(lightType == 8){
+				 	for(var entity in gbox._objects["ground"]){
+					 	shiftEntity(gbox.getObject("ground", entity), xShift, yShift);
+				 	}
+				 }
 			 }
-			gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
+			//gbox.blitTilemap(gbox.getCanvasContext("mazecanvas"),maze); // Let's paste the maze map in the "maze" object into the just created "mazecanvas". So is now ready to be rendered.
+			gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas1"),maze1);
+			gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas2"),maze2);
+			gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas3"),maze3);
+			gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas4"),maze4);
+			gbox.blitTilemap(gbox.getCanvasContext("mazeCanvas5"),maze5);
 			if (m_bDebug){
 				maingame.hud.setValue("xMin","value",leadingZeros(xMin,2));
 				maingame.hud.setValue("xMax","value",leadingZeros(xMax,2));
@@ -327,9 +698,9 @@
 		function shiftEntity(obj, xShift, yShift){
 			
 					 if ((obj.y < yShift && yShift < 0) || 
-						 (obj.y > maze.h - yShift && yShift > 0) ||
+						 (obj.y > maze1.h - yShift && yShift > 0) ||
 						 (obj.x < xShift && xShift < 0) ||
-						 (obj.x > maze.w - xShift && xShift > 0))
+						 (obj.x > maze1.w - xShift && xShift > 0))
 						gbox.trashObject(obj);
 					 else{
 				 		obj.y += yShift;

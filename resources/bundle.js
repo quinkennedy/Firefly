@@ -45,7 +45,13 @@
 		{id:"npc",image:"sprites",tileh:30,tilew:30,tilerow:10,gapx:0,gapy:382},
 
 		{id:"house",image:"sprites",tileh:90,tilew:90,tilerow:1,gapx:0,gapy:412},*/
-		{id:"tiles",image:"tiles",tileh:30,tilew:30,tilerow:5,gapx:90,gapy:0}	
+		{id:"tiles",image:"tiles",tileh:30,tilew:30,tilerow:5,gapx:90,gapy:0},
+			
+		{id:"tiles1",image:"tiles",tileh:30,tilew:30,tilerow:1,gapx:90,gapy:0},
+		{id:"tiles2",image:"tiles",tileh:30,tilew:30,tilerow:1,gapx:120,gapy:0},
+		{id:"tiles3",image:"tiles",tileh:30,tilew:30,tilerow:1,gapx:150,gapy:0},
+		{id:"tiles4",image:"tiles",tileh:30,tilew:30,tilerow:1,gapx:180,gapy:0},
+		{id:"tiles5",image:"tiles",tileh:30,tilew:30,tilerow:1,gapx:210,gapy:0},
 	], // The tilesets are taken from the sprite sheet too.
 
 			// Now let's load some audio samples...

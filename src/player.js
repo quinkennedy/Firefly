@@ -69,7 +69,7 @@ attack:function() {
 						toys.topview.handleAccellerations(this);
 						toys.topview.applyForces(this); // Moves player
 						// Note that our player will keep going since we're not changing the speed given by controlKeys and applied by applyForces (i.e. toys.handleAccellerations)
-						toys.topview.tileCollision(this,maze,"map",null); // check tile collisions.
+						toys.topview.tileCollision(this,maze1,"map",null); // check tile collisions.
 																								  // tolerance indicates how "rounded" the corners are (for turning precision - in player have to be precise but not too much, for anticipated turnings)
 																								  // Approximation is the distance in pixel of each check. Lower approximation is better but is slower. Usually using the lower between the tile size and the sprite height is enough.
 

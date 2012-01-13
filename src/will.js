@@ -97,7 +97,7 @@ var Will = function(x,y,index){
 				//toys.topview.wander(this, maze, "map", 100, {speed:.7, minstep:1, steprange:20});
 			      //toys.topview.handleAccellerations(this);
 			      toys.topview.applyForces(this);
-			      toys.topview.tileCollision(this,maze,"map",null);
+			      toys.topview.tileCollision(this,maze1,"map",null);
 			      if (gbox.collides(this,pl,2)) { // If we're colliding with capman, with a tolerance of 2 pixels...
 					maingame.bullettimer=10; // ...stop the game for a while.
 					pl.sleep();
