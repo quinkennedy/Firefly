@@ -3,6 +3,7 @@ var Player = function(){
 				id:"player", // Every object has an ID for being picked up every time (we've used the ID into newLife)
 				group:"player", // ... and is put in a group (do you remember the setGroups command?)
 				tileset:"player", // Uses this tileset, generated during loading phase...
+				eyes:"peyes",
 				killed:false, // and, for now, was not killed.
 				scorecombo:1, // We'll keep also the score combo, while eating ghosts. at start is 0. Will increase while we're invincible.
 				bugs:0,
@@ -75,7 +76,7 @@ attack:function() {
 						toys.topview.handleAccellerations(this);
 						toys.topview.applyForces(this); // Moves player
 						// Note that our player will keep going since we're not changing the speed given by controlKeys and applied by applyForces (i.e. toys.handleAccellerations)
-						toys.topview.tileCollision(this,maze1,"map",null); // check tile collisions.
+						toys.topview.tileCollision(this,maze,"map",null); // check tile collisions.
 																								  // tolerance indicates how "rounded" the corners are (for turning precision - in player have to be precise but not too much, for anticipated turnings)
 																								  // Approximation is the distance in pixel of each check. Lower approximation is better but is slower. Usually using the lower between the tile size and the sprite height is enough.
 
@@ -91,7 +92,9 @@ attack:function() {
 				// The blit phase is the very last method called every frame. It should only draw the object on the bufferContext (i.e. the screen)
 				blit:function() {
 					if (!this.killed) // If the player is alive, then draw it on the screen. Is a nice trick, since is not needed to destroy/recreate the player every life.
-						gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset,tile:this.frame,dx:this.x,dy:this.y,fliph:this.fliph,flipv:this.flipv,camera:this.camera,alpha:1});
+						var buf = gbox.getBufferContext();
+						gbox.blitTile(buf,{tileset:this.tileset,tile:this.frame,dx:this.x,dy:this.y,fliph:this.fliph,flipv:this.flipv,camera:this.camera,alpha:1});
+						gbox.blitTile(buf,{tileset:this.eyes,tile:this.frame,dx:this.x,dy:this.y,fliph:this.fliph,flipv:this.flipv,camera:this.camera,alpha:1});
 						// That means: draw, from my tileset, a frame in position dx,dy flipping the sprite horizontally and/or vertcally, using the camera coords and with full opacity
 						// All the arguments are taken from this: the "toys" values everything for doing something coherent from the genre of game you're using.
 						// So, our "player" flips, moves and does animation automatically. Really nerds can code something more complex, skipping or integrating the

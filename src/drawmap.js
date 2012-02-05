@@ -1,42 +1,3 @@
-var DrawTypes = [
-	{init:function(){},
-		blit:function(){
-			simpleHardBetween(function(distance,lightAmount){
-				return 255;
-			});
-		}
-	},
-	{init:function(){},
-		blit:function(){
-			simpleHardBetween(function(distance,lightAmount){
-				return (Math.cos(distance*Math.PI/(lightAmount*10))/2+.5)*255;
-			});
-		}
-	},
-	{init:function(){setUpFadeCanvases();},
-		blit:function(){
-			drawFade([0,1,2,3,4],function(to,plX,plY,idx,lightamount,width,height){
-				var size = Math.floor((lightamount - (25 - 5*idx))*5);
-				if (size > 0){
-					to.fillRect(plX - size, plY - size, size*2, size*2);
-					return true;
-				}return false;});
-		}
-	},
-	{init:function(){setUpFadeCanvases();},
-		blit:function(){
-			drawFade([0,3],function(to,plX,plY,idx,lightAmount,width,height){
-				var gradient = to.createRadialGradient(plX,plY,30*(idx+1),plX,plY,30*(idx+1)+20);
-				gradient.addColorStop(0,"#ffffff");
-				gradient.addColorStop(1,"rgba(0,0,0,0)");
-				var temp = to.fillStyle;
-				to.fillStyle = gradient;
-				to.fillRect(0,0,width,height);
-				});
-		}
-	}
-]
-
 function drawFade(indices,shapeFunc){
 	var maps = getMaps();
 	var main = getMain();
@@ -69,37 +30,12 @@ function drawFade(indices,shapeFunc){
 }
 function setUpFadeCanvases(){
 	gbox.createCanvas("fade",{w:maze1.w,h:maze1.h});
-	gbox.createCanvas("fade1",{w:maze1.w,h:maze1.h});
-	gbox.createCanvas("fade2",{w:maze1.w,h:maze1.h});
-	gbox.createCanvas("fade3",{w:maze1.w,h:maze1.h});
-	gbox.createCanvas("fade4",{w:maze1.w,h:maze1.h});
-	gbox.createCanvas("fade5",{w:maze1.w,h:maze1.h});
 }
 function getFades(){
-	var canv=[gbox.getCanvas("fade"),
-		gbox.getCanvas("fade1"),
-		gbox.getCanvas("fade2"),
-		gbox.getCanvas("fade3"),
-		gbox.getCanvas("fade4"),
-		gbox.getCanvas("fade5")];
-	var ctx=[canv[0].getContext("2d"),
-		canv[1].getContext("2d"),
-		canv[2].getContext("2d"),
-		canv[3].getContext("2d"),
-		canv[4].getContext("2d"),
-		canv[5].getContext("2d")];
-	var img=[ctx[0].getImageData(0,0,canv[0].width,canv[0].height),
-		ctx[1].getImageData(0,0,canv[1].width,canv[1].height),
-		ctx[2].getImageData(0,0,canv[2].width,canv[2].height),
-		ctx[3].getImageData(0,0,canv[3].width,canv[3].height),
-		ctx[4].getImageData(0,0,canv[3].width,canv[3].height),
-		ctx[5].getImageData(0,0,canv[4].width,canv[4].height)];
-	var data=[img[0].data,
-		img[1].data,
-		img[2].data,
-		img[3].data,
-		img[4].data,
-		img[5].data];
+	var canv=[gbox.getCanvas("fade")];
+	var ctx=[canv[0].getContext("2d")];
+	var img=[ctx[0].getImageData(0,0,canv[0].width,canv[0].height)];
+	var data=[img[0].data];
 	return {canv:canv,
 		ctx:ctx,
 		img:img,

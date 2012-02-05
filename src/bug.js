@@ -15,10 +15,10 @@ var Bug = function(x,y,index){
 		},
 		first:function(){
 			      this.blinkcounter = (this.blinkcounter+1)%this.blinkfrequency;
-			      toys.topview.wander(this, maze1, "map", 100, {speed:.3, minstep:1, steprange:20});
+			      toys.topview.wander(this, maze, "map", 100, {speed:.3, minstep:1, steprange:20});
 			      toys.topview.handleAccellerations(this);
 			      toys.topview.applyForces(this);
-			      toys.topview.tileCollision(this,maze1,"map",null);
+			      toys.topview.tileCollision(this,maze,"map",null);
 		},
 		kill:function(by){
 			gbox.trashObject(this);

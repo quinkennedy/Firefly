@@ -12,7 +12,7 @@ var Ground = function(x,y,name){
 		first:function(){
 			      toys.topview.handleAccellerations(this);
 			      toys.topview.applyForces(this);
-			      toys.topview.tileCollision(this,maze1,"map",null);
+			      toys.topview.tileCollision(this,maze,"map",null);
 		},
 		blit:function(){
 				var pl=gbox.getObject("player","player");
@@ -30,9 +30,9 @@ var Ground = function(x,y,name){
 					distance /= 30;
 					myAmount += (distance <= 1 ? b.brightness() : b.brightness()/Math.pow(distance,2));
 				}
-				var bottomI = 4-(Math.min(4,Math.floor(myAmount/6)));
+				var bottomI = 9-(Math.min(9,Math.floor(myAmount/6)));
 				var ratio = (myAmount % 6)/6;
-				if (bottomI < 5){
+				if (bottomI < 10){
 					gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset, tile:bottomI, dx:this.x, dy:this.y, camera:this.camera});
 				}
 				if (bottomI > 0 && ratio > 0){
