@@ -67,7 +67,7 @@ attack:function() {
 
 						// First of all, let's move.
 						// We want to move diagonally at the same speed as straight (default controlmaxacc is 4)
-						if ((gbox.keyIsPressed("left") || gbox.keyIsPressed("right")) && (gbox.keyIsPressed("up") || gbox.keyIsPressed("left"))){
+						if ((gbox.keyIsPressed("left") || gbox.keyIsPressed("right")) && (gbox.keyIsPressed("up") || gbox.keyIsPressed("down"))){
 							this.controlmaxacc = Math.sqrt(8);//Math.sqrt((4*4)/2);
 						} else {
 							this.controlmaxacc = 4;
