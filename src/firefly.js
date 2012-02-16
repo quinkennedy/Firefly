@@ -260,6 +260,7 @@
 				 xShift = -shiftPixels;
 				 //shift map x spaces right
 			 }
+			 var jOffset = (xShift < 0 ? 1 : (xShift > 0 ? -1 : 0));
 			 if (pl.y < 5*30){//player hit top edge
 				 yMin = (yMin == 0 ? totalCells - 1 : yMin - 1);
 				 yMax = (yMax == 0 ? totalCells - 1 : yMax - 1);
@@ -269,7 +270,7 @@
 					 maze.map.pop();
 					 maze.map.unshift(new Array());
 					 for(var j = 0; j<maze.map[1].length; j++){
-						maingame.addGround(j*30,(-1)*30,""+xCurr+":"+yCurr);
+						maingame.addGround((j + jOffset)*30,(-1)*30,""+xCurr+":"+yCurr);
 						rand = Alea(seed,xCurr,yCurr);
 						 maze.map[0][j] = arrPieces[rand()*arrPieces.length>>>0];
 						 addEntities(rand,j,-1);
@@ -287,7 +288,7 @@
 					 maze.map.shift();
 					 maze.map.push(new Array());
 					 for(var j = 0; j<maze.map[0].length; j++){
-						maingame.addGround(j*30,(maze.map.length)*30,""+xCurr+":"+yCurr);
+						maingame.addGround((j + jOffset)*30,(maze.map.length)*30,""+xCurr+":"+yCurr);
 						rand = Alea(seed,xCurr,yCurr);
 						 maze.map[maze.map.length-1][j] = arrPieces[rand()*arrPieces.length>>>0];
 						 addEntities(rand,j,maze.map.length);
