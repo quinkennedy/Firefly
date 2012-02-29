@@ -7,6 +7,10 @@ var Ground = function(x,y,name){
 		y:y,
 		split:1,
 		tilesize:30,
+		bugBrightness:2,
+		bugDecayPower:3,
+		playerDecayPower:2,
+		willDecayPower:4,
 		samplex:0,
 		sampley:0,
 		splitsamples:new Array(),
@@ -32,17 +36,8 @@ var Ground = function(x,y,name){
 				var lightInfo = getLightInfo();
 				var myY = this.y + this.sampley;//this.tilesize / 2;
 				var myX = this.x + this.samplex;//this.tilesize / 2;
-				var myAmount, distance;
 
-				distance = Math.sqrt(Math.pow(playerX-myX,2)+Math.pow(playerY-myY,2));
-				distance /= 30;
-				myAmount = (distance <= 1 ? lightInfo.amount : lightInfo.amount/Math.pow(distance,2));
-				for(var entity in gbox._objects["bug"]){
-					var b = gbox.getObject("bug", entity);
-					distance = Math.sqrt(Math.pow(b.x+15-myX,2)+Math.pow(b.y+15-myY,2));
-					distance /= 30;
-					myAmount += (distance <= 1 ? b.brightness()*2 : b.brightness()*2/Math.pow(distance,3));
-				}
+				var myAmount = this.getBrightness(myX,myY,playerX,playerY,lightInfo);
 				var bottomI = this.getBottomI(myAmount);
 				this.actualblit(0,0,this.tilesize,bottomI,this.getRatio(myAmount));
 				if (bottomI <= 8){
@@ -52,15 +47,7 @@ var Ground = function(x,y,name){
 						for(var v = 0; v < currSplit; v++){
 							myY = this.y + (splitsize * h) + this.splitsamples[h*3+v].y;
 							myX = this.x + (splitsize * v) + this.splitsamples[h*3+v].x;
-							distance = Math.sqrt(Math.pow(playerX-myX,2)+Math.pow(playerY-myY,2));
-							distance /= 30;
-							myAmount = (distance <= 1 ? lightInfo.amount : lightInfo.amount/Math.pow(distance,2));
-							for(var entity in gbox._objects["bug"]){
-								var b = gbox.getObject("bug", entity);
-								distance = Math.sqrt(Math.pow(b.x+15-myX,2)+Math.pow(b.y+15-myY,2));
-								distance /= 30;
-								myAmount += (distance <= 1 ? b.brightness()*2 : b.brightness()*2/Math.pow(distance,3));
-							}
+							myAmount = this.getBrightness(myX,myY,playerX,playerY,lightInfo);
 							var bottomI = this.getBottomI(myAmount);
 							var ratio = this.getRatio(myAmount);
 							if (ratio > 0 && bottomI <= 4){
@@ -76,6 +63,35 @@ var Ground = function(x,y,name){
 					}
 				}else{
 				}
+		},
+		getBrightness:function(fromX,fromY,playerX,playerY,lightInfo){
+			var myAmount, distance;
+			var willAmount = 0;
+			//get will-o-wisp "contribution" 
+			for(var entity in gbox._objects["will"]){
+				var w = gbox.getObject("will", entity);
+				distance = this.getDistance(w.x,w.y,fromX,fromY);
+				willAmount += (distance <= 1 ? w.brightness(): w.brightness()/Math.pow(distance,this.willDecayPower));
+				if (willAmount >= 1){
+					return 0;
+				}
+			}
+
+			//get player contribution
+			distance = this.getDistance(playerX,playerY,fromX,fromY);
+			myAmount = (distance <= 1 ? lightInfo.amount : lightInfo.amount/Math.pow(distance,this.playerDecayPower));
+			//get bug contribution
+			for(var entity in gbox._objects["bug"]){
+				var b = gbox.getObject("bug", entity);
+				distance = this.getDistance(b.x+15,b.y+15,fromX,fromY);
+				myAmount += (distance <= 1 ? b.brightness()*this.bugBrightness : b.brightness()*this.bugBrightness/Math.pow(distance,this.bugDecayPower));
+			}
+			//will-o-wisp sucks out a percentage of the light
+			myAmount *= (1 - willAmount);
+			return myAmount;
+		},
+		getDistance:function(fromX,fromY,toX,toY){
+			return (Math.sqrt(Math.pow(fromX-toX,2)+Math.pow(fromY-toY,2))/this.tilesize);
 		},
 		getBottomI:function(myAmount){
 			return 9-(Math.min(9,Math.floor(myAmount/6)));

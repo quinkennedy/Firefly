@@ -103,6 +103,9 @@ var Will = function(x,y,index){
 					pl.sleep();
 				}	
 		},
+		brightness:function(){
+			return 2;
+		},
 		/*kill:function(by){
 			gbox.trashObject(this);
 		},*/
@@ -113,6 +116,7 @@ var Will = function(x,y,index){
 			return by.undestructable; // Destroy or not a bullet (decided by the bullet itself)
 		},*/
 		blit:function(){
+			     return;
 			     gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset, tile:0, dx:this.x, dy:this.y, camera:this.camera, alpha:.9+(.1*Math.cos(Math.PI*(this.blinkcounter/this.blinkfrequency)*2))});
 		}
 	};

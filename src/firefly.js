@@ -20,6 +20,7 @@
 				var bugP = .05;
 				var willP = .01;
 				var willIndex = 0;
+				var useWills = false;
 				var bugIndex = 0;
 				var baseURL, basePicURL;
 				var m_bDebug = false;
@@ -200,7 +201,7 @@
 		}
 
 		maingame.addWill = function(x,y,index){
-			return;//we will include wills later
+			if (!this.useWills){return;}//we will include wills later
 			var will = gbox.addObject(new Will(x, y, index));
 			return will;
 		}
